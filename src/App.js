@@ -2,20 +2,32 @@ import { useState } from "react";
 import Login from "./components/Login";
 import CreateTask from "./components/CreateTask";
 import Logout from "./components/Logout";
-import "./App.css";
+import TaskList from "./components/TaskList";
 
 function App() {
-    const [token, setToken] = useState(null);
+    const [token, setToken] = useState("");
+    const [refreshKey, setRefreshKey] = useState(0);
+
+    const handleTaskCreated = () => {
+        setRefreshKey((prevKey) => prevKey + 1);
+    };
+
+    const handleLogout = () => {
+        setToken("");
+        setRefreshKey(0);
+    };
 
     return (
-        <div className="App">
+        <div className="App" style={{ textAlign: "center", padding: "20px" }}>
             {!token ? (
-                <Login onLoginSuccess={(receivedToken) => setToken(receivedToken)} />
+                <Login onLoginSuccess={(newToken) => setToken(newToken)} />
             ) : (
-                <>
-                    <CreateTask token={token} />
-                    <Logout token={token} onLogoutSuccess={() => setToken(null)} />
-                </>
+                <div>
+                    <Logout token={token} onLogout={handleLogout} />
+                    <CreateTask token={token} onTaskCreated={handleTaskCreated} />
+                    <hr style={{ margin: "30px 0" }} />
+                    <TaskList token={token} key={refreshKey} />
+                </div>
             )}
         </div>
     );
