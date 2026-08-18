@@ -1,25 +1,23 @@
 import { useState } from "react";
 
-function CreateTask({ token }) {
+function CreateTask({ token, onTaskCreated }) {
     const [name, setName] = useState("");
     const [categoryId, setCategoryId] = useState("");
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState("");
 
+    const API_URL = "https://backpack-recant-pebbly.ngrok-free.dev/api/tasks";
+
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        if (!name.trim()) {
-            setMessage("لازم تكتب عنوان المهمة");
-            return;
-        }
-        if (!categoryId) {
-            setMessage("لازم تكتب رقم الـ category");
+        if (!name.trim() || !categoryId) {
+            setMessage("يرجى تعبئة جميع الحقول");
             return;
         }
 
         if (!token) {
-            setMessage("التوكن مفقود! رجاءً سجل الدخول أولاً");
+            setMessage("التوكن مفقود! يرجى تسجيل الدخول مجدداً");
             return;
         }
 
@@ -27,7 +25,7 @@ function CreateTask({ token }) {
         setMessage("");
 
         try {
-            const response = await fetch("https://baked-issuing-vocalist.ngrok-free.dev/api/tasks?ngrok-skip-browser-warning=true", {
+            const response = await fetch(`${API_URL}?ngrok-skip-browser-warning=true`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -37,29 +35,32 @@ function CreateTask({ token }) {
                 },
                 body: JSON.stringify({
                     name: name,
-                    description :"bkjvndk",
+                    description: "وصف افتراضي للمهمة",
                     category_id: Number(categoryId),
                 }),
             });
 
-            // قراءة الرد كنص أولاً لمنع خطأ JSON.parse
             const textData = await response.text();
             let data;
             try {
                 data = JSON.parse(textData);
             } catch (err) {
-                console.error("الرد المرجّع ليس JSON:", textData);
-                throw new Error("السيرفر أرجع رد غير متوقع (شيك الـ Console)");
+                throw new Error("الرد القادم ليس JSON");
             }
 
             if (!response.ok) {
                 throw new Error(data.message || `Server error: ${response.status}`);
             }
 
-            console.log("Task created:", data);
             setMessage("تم إنشاء المهمة بنجاح ✅");
+
+            if (typeof onTaskCreated === "function") {
+                onTaskCreated();
+            }
+
             setName("");
             setCategoryId("");
+
         } catch (error) {
             console.error("Error creating task:", error);
             setMessage(error.message);

@@ -18,7 +18,7 @@ function Login({ onLoginSuccess }) {
         setMessage("");
 
         try {
-            const response = await fetch("https://baked-issuing-vocalist.ngrok-free.dev/api/login", {
+            const response = await fetch("https://backpack-recant-pebbly.ngrok-free.dev/api/login", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -28,16 +28,20 @@ function Login({ onLoginSuccess }) {
                 body: JSON.stringify({ email, password }),
             });
 
+            const textData = await response.text();
+            let data;
+            try {
+                data = JSON.parse(textData);
+            } catch (err) {
+                throw new Error("الرد القادم ليس JSON، تأكدي من الضغط على Visit Site في رابط ngrok");
+            }
 
-            const data = await response.json();
             console.log("Login response:", data);
 
             if (!response.ok) {
-                // إظهار رسالة الخطأ القادمة من الـ API إن وجدت
                 throw new Error(data.message || `Server error: ${response.status}`);
             }
 
-            // التأكد من استخراج التوكن سواء كان بـ data.token أو data.access_token
             const token = data.token || data.access_token;
 
             if (token) {
